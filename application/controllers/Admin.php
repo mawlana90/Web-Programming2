@@ -124,4 +124,83 @@ class Admin extends CI_Controller
         $this->M_perpus->delete_data($where, 'buku');
         redirect(base_url() . 'admin/buku');
     }
+
+    function edit_buku($id)
+    {
+        $where = array('id_buku' => $id);
+        $data['buku'] = $this->db->query("select * from buku B, kategori K where B.id_kategori=K.id_kategori and B.id_buku='$id'")->result();
+        $data['kategori'] = $this->M_perpus->get_data('kategori')->result();
+
+        $this->load->view('admin/header');
+        $this->load->view('admin/editbuku', $data);
+        $this->load->view('admin/footer');
+    }
+
+    function update_buku()
+    {
+        $id = $this->input->post('id');
+        $id_kategori = $this->input->post('id_kategori');
+        $judul = $this->input->post('judul_buku');
+        $pengarang = $this->input->post('pengarang');
+        $penerbit = $this->input->post('penerbit');
+        $thn_terbit = $this->input->post('thn_terbit');
+        $isbn = $this->input->post('isbn');
+        $jumlah_buku = $this->input->post('jumlah_buku');
+        $lokasi = $this->input->post('lokasi');
+        $status = $this->input->post('status');
+
+        $this->form_validation->set_rules('id_kategori', 'ID Kategori', 'required');
+        $this->form_validation->set_rules('judul_buku', 'Judul Buku', 'required|min_length[4]');
+        $this->form_validation->set_rules('pengarang', 'Pengarang', 'required|min_length[4]');
+        $this->form_validation->set_rules('penerbit', 'Penerbit', 'required|min_length[4]');
+        $this->form_validation->set_rules('thn_terbit', 'Tahun Terbit', 'required|min_length[4]');
+        $this->form_validation->set_rules('isbn', 'Nomor ISBN', 'required|numeric');
+        $this->form_validation->set_rules('jumlah_buku', 'Jumlah Buku', 'required|numeric');
+        $this->form_validation->set_rules('lokasi', 'Lokasi Buku', 'required|min_length[4]');
+        $this->form_validation->set_rules('status', 'Status Buku', 'required');
+
+        if ($this->form_validation->run() != false) {
+            $config['upload_path'] = './assets/upload/';
+            $config['allowed_types'] = 'jpg|png|jpeg';
+            $config['max_size'] = '2048';
+            $config['file_name'] = 'gambar' . time();
+
+            $this->load->library('upload', $config);
+
+            $where = array('id_buku' => $id);
+            $data = array(
+                'id_kategori' => $id_kategori,
+                'judul_buku' => $judul,
+                'pengarang' => $pengarang,
+                'penerbit' => $penerbit,
+                'thn_terbit' => $thn_terbit,
+                'isbn' => $isbn,
+                'jumlah_buku' => $jumlah_buku,
+                'lokasi' => $lokasi,
+                'status_buku' => $status
+            );
+
+            if ($this->upload->do_upload('foto')) {
+                //proses upload Gambar
+                $imge = $this->upload->data();
+                unlink('assets/upload/' . $this->input->post('old_pict', TRUE));
+                $data['gambar'] = $imge['file_name'];
+
+                $this->M_perpus->update_data('buku', $data, $where);
+            } else {
+                $this->M_perpus->update_data('buku', $data, $where);
+            }
+
+
+            $this->M_perpus->update_data('buku', $data, $where);
+            redirect(base_url() . 'admin/buku');
+        } else {
+            $where = array('id_buku' => $id);
+            $data['buku'] = $this->db->query("select * from buku B, kategori K where B.id_kategori=K.id_kategori and B.id_buku='$id'")->result();
+            $data['kategori'] = $this->M_perpus->get_data('kategori')->result();
+            $this->load->view('admin/header');
+            $this->load->view('admin/editbuku', $data);
+            $this->load->view('admin/footer');
+        }
+    }
 }
