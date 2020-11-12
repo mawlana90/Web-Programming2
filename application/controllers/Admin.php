@@ -121,7 +121,7 @@ class Admin extends CI_Controller
     function hapus_buku($id)
     {
         $where = array('id_buku' => $id);
-        $this->M_perpus->delete_data($where, 'buku');
+        $this->M_perpus->hapuse_data($where, 'buku');
         redirect(base_url() . 'admin/buku');
     }
 
@@ -200,6 +200,98 @@ class Admin extends CI_Controller
             $data['kategori'] = $this->M_perpus->get_data('kategori')->result();
             $this->load->view('admin/header');
             $this->load->view('admin/editbuku', $data);
+            $this->load->view('admin/footer');
+        }
+    }
+    function anggota()
+    {
+        $data['anggota'] = $this->M_perpus->get_data('anggota')->result();
+        $this->load->view('admin/header');
+        $this->load->view('admin/anggota', $data);
+        $this->load->view('admin/footer');
+    }
+    function tambah_anggota()
+    {
+        $this->load->view('admin/header');
+        $this->load->view('admin/tambahanggota');
+        $this->load->view('admin/footer');
+    }
+    function tambah_anggota_act()
+    {
+
+        $nama_anggota = $this->input->post('nama_anggota', true);
+        $gender = $this->input->post('gender', true);
+        $no_tlpn = $this->input->post('no_tlpn', true);
+        $alamat = $this->input->post('alamat', true);
+        $email = $this->input->post('email', true);
+
+        $this->form_validation->set_rules('nama_anggota', 'Nama', 'required');
+        $this->form_validation->set_rules('gender', 'Gender', 'required');
+        $this->form_validation->set_rules('no_tlpn', 'Nomor Telephone', 'required');
+        $this->form_validation->set_rules('alamat', 'Alamat', 'required');
+        $this->form_validation->set_rules('email', 'Email', 'required');
+        if ($this->form_validation->run() != false) {
+            $data = array(
+                'nama_anggota' => $nama_anggota,
+                'gender' => $gender,
+                'no_tlpn' => $no_tlpn,
+                'alamat' => $alamat,
+                'email' => $email,
+            );
+            $this->M_perpus->insert_data('anggota', $data);
+            redirect(base_url() . 'admin/anggota');
+        } else {
+            echo validation_errors();
+            $this->load->view('admin/header');
+            $this->load->view('admin/tambahanggota');
+            $this->load->view('admin/footer');
+        }
+    }
+    function hapus_anggota($id)
+    {
+        $where = array('Id_anggota' => $id);
+        $this->M_perpus->hapus_data('anggota', $where);
+        redirect(base_url() . 'admin/anggota');
+    }
+    function edit_anggota($id)
+    {
+        $where = array('Id_anggota' => $id);
+        $data['anggota'] = $this->db->query("select * from anggota where Id_anggota='$id'")->result();
+
+
+        $this->load->view('admin/header');
+        $this->load->view('admin/editanggota', $data);
+        $this->load->view('admin/footer');
+    }
+    function update_anggota()
+    {
+        $id = $this->input->post('id');
+        $nama_anggota = $this->input->post('nama_anggota', true);
+        $gender = $this->input->post('gender', true);
+        $no_tlpn = $this->input->post('no_tlpn', true);
+        $alamat = $this->input->post('alamat', true);
+        $email = $this->input->post('email', true);
+
+        $this->form_validation->set_rules('nama_anggota', 'Nama', 'required');
+        $this->form_validation->set_rules('gender', 'Gender', 'required');
+        $this->form_validation->set_rules('no_tlpn', 'Nomor Telephone', 'required');
+        $this->form_validation->set_rules('alamat', 'Alamat', 'required');
+        $this->form_validation->set_rules('email', 'Email', 'required');
+        if ($this->form_validation->run() != false) {
+            $data = array(
+                'nama_anggota' => $nama_anggota,
+                'gender' => $gender,
+                'no_tlpn' => $no_tlpn,
+                'alamat' => $alamat,
+                'email' => $email,
+            );
+            $where = array('Id_anggota' => $id);
+            $this->M_perpus->update_data('anggota', $data, $where);
+            redirect(base_url() . 'admin/anggota');
+        } else {
+            echo validation_errors();
+            $this->load->view('admin/header');
+            $this->load->view('admin/tambahanggota');
             $this->load->view('admin/footer');
         }
     }
