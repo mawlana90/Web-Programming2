@@ -66,6 +66,12 @@ if ($this->session->flashdata()) {
     </div>
 
     <div class="form-group">
+        <label>Denda</label>
+        <input type="text" name="denda" class="form-control">
+        <?php echo form_error('denda'); ?>
+    </div>
+
+    <div class="form-group">
         <label>Gambar</label>
         <input type="file" name="foto" class="form-control">
     </div>

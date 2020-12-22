@@ -7,7 +7,7 @@ class Admin extends CI_Controller
     {
         parent::__construct();
         //cek login
-        if ($this->session->userdata('status') != "login") {
+        if ($this->session->userdata('status') != "login" && $this->uri->segment(2) != 'registration' && $this->uri->segment(2) != 'save_anggota') {
             redirect(base_url() . 'welcome?pesan=belumlogin');
         }
     }
@@ -25,7 +25,7 @@ class Admin extends CI_Controller
 
     function logout()
     {
-        $this->sesion->sess_destroy();
+        $this->session->sess_destroy();
         redirect(base_url() . 'welcome?pesan=logout');
     }
     function ganti_password()
@@ -81,9 +81,11 @@ class Admin extends CI_Controller
         $jumlah_buku = $this->input->post('jumlah_buku', true);
         $lokasi = $this->input->post('lokasi', true);
         $status = $this->input->post('status', true);
+        $denda = $this->input->post('denda', true);
         $this->form_validation->set_rules('id_kategori', 'Kategori', 'required');
         $this->form_validation->set_rules('judul_buku', 'Judul Buku', 'required');
         $this->form_validation->set_rules('status', 'Status Buku', 'required');
+        $this->form_validation->set_rules('denda', 'Denda', 'required');
         if ($this->form_validation->run() != false) {
             $config['upload_path'] = './assets/upload/';
             $config['allowed_types'] = '*';
@@ -102,7 +104,8 @@ class Admin extends CI_Controller
                     'lokasi' => $lokasi,
                     'gambar' => $image['file_name'],
                     'tgl_input' => $tgl_input,
-                    'status_buku' => $status
+                    'status_buku' => $status,
+                    'denda' => $denda
                 );
                 $this->M_perpus->insert_data('buku', $data);
                 redirect(base_url() . 'admin/buku');
@@ -121,7 +124,7 @@ class Admin extends CI_Controller
     function hapus_buku($id)
     {
         $where = array('id_buku' => $id);
-        $this->M_perpus->hapuse_data($where, 'buku');
+        $this->M_perpus->hapus_data('buku', $where);
         redirect(base_url() . 'admin/buku');
     }
 
@@ -293,6 +296,231 @@ class Admin extends CI_Controller
             $this->load->view('admin/header');
             $this->load->view('admin/tambahanggota');
             $this->load->view('admin/footer');
+        }
+    }
+
+    function peminjaman()
+    {
+        $data['peminjaman'] = $this->db->query("SELECT * FROM transaksi T, buku B, anggota A WHERE T.id_buku=B.id_buku and T.id_anggota=A.id_anggota")->result();
+        $this->load->view('admin/header');
+        $this->load->view('admin/peminjaman', $data);
+        $this->load->view('admin/footer');
+    }
+
+    function tambah_peminjaman()
+    {
+        $w = array('status_buku' => '1');
+        $data['buku'] =
+            $this->M_perpus->edit_data(
+                $w,
+                'buku'
+            )->result();
+        $data['anggota'] =
+            $this->M_perpus->get_data('anggota')->result();
+        // print_r($data['anggota']);
+        // exit;
+        $data['peminjaman'] =
+            $this->M_perpus->get_data('transaksi')->result();
+        $this->load->view('admin/header');
+        $this->load->view(
+            'admin/tambah_peminjaman',
+            $data
+        );
+        $this->load->view('admin/footer');
+    }
+
+    function tambah_peminjaman_act()
+    {
+        $tgl_pencatatan = date('Y-m-d H:i:s');
+        $anggota = $this->input->post('anggota');
+        $buku = $this->input->post('buku');
+        $tgl_pinjam = $this->input->post('tgl_pinjam');
+        $tgl_kembali = $this->input->post('tgl_kembali');
+        $this->form_validation->set_rules(
+            'anggota',
+            'Anggota',
+            'required'
+        );
+        $this->form_validation->set_rules(
+            'buku',
+            'Buku',
+            'required'
+        );
+        $this->form_validation->set_rules(
+            'tgl_pinjam',
+            'Tanggal Pinjam',
+            'required'
+        );
+        $this->form_validation->set_rules(
+            'tgl_kembali',
+            'Tanggal Kembali',
+            'required'
+        );
+
+        if ($this->form_validation->run() != false) {
+            $data = array(
+                'tgl_pencatatan' => $tgl_pencatatan,
+                'id_anggota' => $anggota,
+                'id_buku' => $buku,
+                'tgl_pinjam' => $tgl_pinjam,
+                'tgl_kembali' => $tgl_kembali,
+                'tgl_pengembalian' => '0000-00-00',
+                'total_denda' => '0',
+                'status_pengembalian' => '0',
+                'status_peminjaman' => '0'
+            );
+            $this->M_perpus->insert_data(
+                'transaksi',
+                $data
+            );
+            $d = array(
+                'status_buku' => '0',
+                'tgl_input' =>
+                substr($tgl_pencatatan, 0, 10)
+            );
+            $w = array('id_buku' => $buku);
+            $this->M_perpus->update_data(
+                'buku',
+                $d,
+                $w
+            );
+            redirect(base_url() . 'admin/peminjaman');
+        } else {
+            $w = array('status_buku' => '1');
+            $data['buku'] =
+                $this->M_perpus->edit_data(
+                    $w,
+                    'buku'
+                )->result();
+            $data['anggota'] =
+                $this->M_perpus->get_data('anggota')->result();
+            $this->load->view('admin/header');
+            $this->load->view(
+                'admin/tambah_peminjaman',
+                $data
+            );
+            $this->load->view('admin/footer');
+        }
+    }
+
+    function transaksi_hapus($id)
+    {
+        $w = array('id_pinjam' => $id);
+        $data =
+            $this->M_perpus->edit_data(
+                $w,
+                'transaksi'
+            )->row();
+        $ww = array('id_buku' => $data->id_buku);
+        $data2 = array('status_buku' => '1');
+        $this->M_perpus->update_data(
+            'buku',
+            $data2,
+            $ww
+        );
+        $this->M_perpus->delete_data(
+            $w,
+            'transaksi'
+        );
+        redirect(base_url() . 'admin/peminjaman');
+    }
+    function transaksi_selesai($id)
+    {
+
+        $data['peminjaman'] = $this->db->query("select
+        * from transaksi t,anggota a, buku b
+        where t.id_buku = b.id_buku and t.id_anggota=a.id_anggota
+        and t.id_pinjam='$id'")->row();
+        $this->load->view('admin/header');
+        $this->load->view(
+            'admin/transaksi_selesai',
+            $data
+        );
+        $this->load->view('admin/footer');
+    }
+    function transaksi_selesai_act()
+    {
+        $id = $this->input->post('id');
+        $tgl_dikembalikan =
+            $this->input->post('pengembalian');
+        $tgl_kembali =
+            $this->input->post('tgl_kembali');
+        $buku = $this->input->post('buku');
+        $denda = $this->input->post('denda');
+        $this->form_validation->set_rules(
+            'pengembalian',
+            'Tanggal dikembalkan',
+            'required'
+        );
+        if ($this->form_validation->run() != false) {
+            //hitung selisih hari
+            $batas_kembali = strtotime($tgl_kembali);
+            $dikembalikan =
+                strtotime($tgl_dikembalikan);
+            $selisih = abs(($batas_kembali - $dikembalikan) / (60 * 60 * 24));
+            $total_denda = $denda * $selisih;
+            //update status Peminjaman
+            $data = array(
+                'status_peminjaman' =>
+                '1',
+                'total_denda' => $total_denda,
+                'tgl_pengembalian' =>
+                $tgl_dikembalikan,
+                'status_pengembalian' => '1'
+            );
+            $w = array('id_pinjam' => $id);
+            $this->M_perpus->update_data(
+                'transaksi',
+                $data,
+                $w
+            );
+            //update status Buku
+            $data2 = array('status_buku' => '1');
+            $w2 = array('id_buku' => $buku);
+            $this->M_perpus->update_data(
+                'buku',
+                $data2,
+                $w2
+            );
+            // echo $total_denda;
+            // exit;
+            redirect(base_url() . 'admin/peminjaman');
+        } else {
+            redirect(base_url() . 'admin/transaksi_selesai/' . $id);
+        }
+    }
+
+    function registration()
+    {
+        $this->load->view('admin/login');
+    }
+
+    function save_anggota()
+    {
+        $nama_anggota = $this->input->post('nama_anggota', true);
+        $email = $this->input->post('email', true);
+        $no_tlpn = $this->input->post('no_tlpn', true);
+        $alamat = $this->input->post('alamat', true);
+        $password = $this->input->post('password1', true);
+
+        $this->form_validation->set_rules('nama_anggota', 'Nama', 'required');
+        $this->form_validation->set_rules('email', 'Email', 'required');
+        $this->form_validation->set_rules('no_tlpn', 'No Tlpn', 'required');
+        $this->form_validation->set_rules('alamat', 'Alamat', 'required');
+        $this->form_validation->set_rules('password1', 'Password', 'required');
+        $this->form_validation->set_rules('password2', 'Password2', 'required|matches[password1]');
+        if ($this->form_validation->run() != false) {
+            $data = array(
+                'nama_anggota' => $nama_anggota,
+                'email' => $email,
+                'no_tlpn' => $no_tlpn,
+                'alamat' => $alamat,
+                'password' => md5($password),
+            );
+            $this->M_perpus->insert_data('anggota', $data);
+            redirect(base_url());
+        } else {
+            $this->load->view('admin/login');
         }
     }
 }

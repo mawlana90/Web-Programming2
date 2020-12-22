@@ -41,7 +41,7 @@
                                     </div>
                                     <form class="user" method="post" action="<?php echo base_url() . 'welcome/login' ?>">
                                         <div class="form-group">
-                                            <input type="text" class="form-control form-control-user" id="email" name="username" placeholder="username...">
+                                            <input type="text" class="form-control form-control-user" id="email" name="username" placeholder="Username/Email">
                                         </div>
                                         <div class="form-group">
                                             <input type="password" class="form-control form-control-user" id="password" name="password" placeholder="password">

@@ -22,6 +22,7 @@ class Welcome extends CI_Controller
 
 		if ($this->form_validation->run() != false) {
 			$where = array('username' => $username, 'password' => md5($password));
+			$where2 = array('email' => $username, 'password' => md5($password));
 
 			$data = $this->M_perpus->edit_data($where, 'admin');
 			$d = $this->M_perpus->edit_data($where, 'admin')->row();
@@ -32,8 +33,8 @@ class Welcome extends CI_Controller
 				$this->session->set_userdata($session);
 				redirect(base_url() . 'admin');
 			} else {
-				$dt = $this->M_perpus->edit_data($where, 'anggota');
-				$hasil = $this->M_perpus->edit_data($where, 'anggota')->row();
+				$dt = $this->M_perpus->edit_data($where2, 'anggota');
+				$hasil = $this->M_perpus->edit_data($where2, 'anggota')->row();
 				$proses = $dt->num_rows();
 
 				if ($proses > 0) {

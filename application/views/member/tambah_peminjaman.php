@@ -2,17 +2,11 @@
     <h3>Transaksi Baru</h3>
 </div>
 <form action="<?php echo
-                    base_url() . 'admin/tambah_peminjaman_act' ?>" method="post">
+                    base_url() . 'member/tambah_peminjaman_act' ?>" method="post">
     <div class="form-group">
         <label>Anggota</label>
-        <select name="anggota" class="form-control">
-            <option value="">-Pilih Anggota-</option>
-            <?php foreach ($anggota as $a) { ?>
-                <option value="<?php echo
-                                    $a->id_anggota; ?>"><?php echo
-                                                            $a->nama_anggota; ?></option>
-            <?php } ?>
-        </select>
+        <input type="text" name="anggota" value="<?php echo $this->session->userdata('nama_agt')  ?>" class="form-control"></input>
+
         <?php echo form_error('anggota'); ?>
     </div>
     <div class="form-group">

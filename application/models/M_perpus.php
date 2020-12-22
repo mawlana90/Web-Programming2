@@ -38,4 +38,11 @@ class M_perpus extends CI_Model
         $this->db->where($where);
         $this->db->delete($table);
     }
+
+    public function transaksi_peruser($id)
+    {
+        return $this->db->query("SELECT * FROM `transaksi` 
+        JOIN buku on buku.id_buku = transaksi.id_buku
+        WHERE id_anggota = $id");
+    }
 }

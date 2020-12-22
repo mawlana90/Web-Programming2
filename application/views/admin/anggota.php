@@ -29,8 +29,8 @@
                     <td><?php echo $a->alamat ?></td>
                     <td><?php echo $a->email ?></td>
                     <td nowrap="nowrap">
-                        <a class="btn btn-primary btn-xs" href="<?php echo base_url() . 'admin/edit_anggota/' . $a->Id_anggota; ?>"><span class="glyphicon glyphicon-zoom-in"></span></a>
-                        <a class="btn btn-warning btn-xs" href="<?php echo base_url() . 'admin/hapus_anggota/' . $a->Id_anggota; ?>"><span class="glyphicon glyphicon-remove"></span></a>
+                        <a class="btn btn-primary btn-xs" href="<?php echo base_url() . 'admin/edit_anggota/' . $a->id_anggota; ?>"><span class="glyphicon glyphicon-zoom-in"></span></a>
+                        <a class="btn btn-warning btn-xs" href="<?php echo base_url() . 'admin/hapus_anggota/' . $a->id_anggota; ?>"><span class="glyphicon glyphicon-remove"></span></a>
                     </td>
                 </tr>
             <?php } ?>
